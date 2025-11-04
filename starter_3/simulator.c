@@ -122,7 +122,17 @@ int main(int argc, char *argv[]) {
     readMachineCode(&state, argv[1]);
 
     /* ------------ Initialize State ------------ */
-
+    // At the start of the program, initialize the pc and all registers to zero. Initialize the instruction field in all pipeline registers to the noop instruction (0x1c00000).
+    state.pc = 0;
+    state.cycles = 0;
+    for (int i = 0; i < NUMREGS; i++) {
+        state.reg[i] = 0;
+    }
+    state.IFID.instr = NOOPINSTR;
+    state.IDEX.instr = NOOPINSTR;
+    state.EXMEM.instr = NOOPINSTR;
+    state.MEMWB.instr = NOOPINSTR;
+    state.WBEND.instr = NOOPINSTR;
     /* ------------------- END ------------------ */
 
     newState = state;
