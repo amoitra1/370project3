@@ -150,7 +150,8 @@ int main(int argc, char *argv[]) {
             newState.IFID.pcPlus1 = state.pc + 1;
         } 
         else {
-            newState.IFID.instr = NOOPINSTR;
+            newState.IFID.instr = 0;
+            newState.IFID.pcPlus1 = state.pc + 1;
         }
         newState.pc = state.pc + 1;
 
@@ -290,12 +291,12 @@ void printState(stateType *statePtr) {
         printf(" (Don't Care)");
     }
     printf("\n");
-    printf("\t\treadRegA = %d", statePtr->IDEX.valA);
+    printf("\t\tvalA = %d", statePtr->IDEX.valA);
     if (idexOp >= HALT || idexOp < 0) {
         printf(" (Don't Care)");
     }
     printf("\n");
-    printf("\t\treadRegB = %d", statePtr->IDEX.valB);
+    printf("\t\tvalB = %d", statePtr->IDEX.valB);
     if(idexOp == LW || idexOp > BEQ || idexOp < 0) {
         printf(" (Don't Care)");
     }
@@ -327,7 +328,7 @@ void printState(stateType *statePtr) {
         printf(" (Don't Care)");
     }
     printf("\n");
-    printf("\t\treadRegB = %d", statePtr->EXMEM.valB);
+    printf("\t\tvalB = %d", statePtr->EXMEM.valB);
     if (exmemOp != SW) {
         printf(" (Don't Care)");
     }

@@ -25,15 +25,15 @@ state before cycle 0 starts:
 	ID/EX pipeline register:
 		instruction = 0x01C00000 ( noop )
 		pcPlus1 = 0 (Don't Care)
-		readRegA = 0 (Don't Care)
-		readRegB = 0 (Don't Care)
+		valA = 0 (Don't Care)
+		valB = 0 (Don't Care)
 		offset = 0 (Don't Care)
 	EX/MEM pipeline register:
 		instruction = 0x01C00000 ( noop )
 		branchTarget 0 (Don't Care)
 		eq ? False (Don't Care)
 		aluResult = 0 (Don't Care)
-		readRegB = 0 (Don't Care)
+		valB = 0 (Don't Care)
 	MEM/WB pipeline register:
 		instruction = 0x01C00000 ( noop )
 		writeData = 0 (Don't Care)
@@ -64,15 +64,15 @@ state before cycle 1 starts:
 	ID/EX pipeline register:
 		instruction = 0x01C00000 ( noop )
 		pcPlus1 = 0 (Don't Care)
-		readRegA = 0 (Don't Care)
-		readRegB = 0 (Don't Care)
+		valA = 0 (Don't Care)
+		valB = 0 (Don't Care)
 		offset = 0 (Don't Care)
 	EX/MEM pipeline register:
 		instruction = 0x01C00000 ( noop )
 		branchTarget 0 (Don't Care)
 		eq ? True (Don't Care)
 		aluResult = 0 (Don't Care)
-		readRegB = 0 (Don't Care)
+		valB = 0 (Don't Care)
 	MEM/WB pipeline register:
 		instruction = 0x01C00000 ( noop )
 		writeData = 0 (Don't Care)
@@ -103,15 +103,15 @@ state before cycle 2 starts:
 	ID/EX pipeline register:
 		instruction = 0x00810002 ( lw 0 1 2 )
 		pcPlus1 = 1
-		readRegA = 0
-		readRegB = 0 (Don't Care)
+		valA = 0
+		valB = 0 (Don't Care)
 		offset = 2
 	EX/MEM pipeline register:
 		instruction = 0x01C00000 ( noop )
 		branchTarget 0 (Don't Care)
 		eq ? True (Don't Care)
 		aluResult = 0 (Don't Care)
-		readRegB = 0 (Don't Care)
+		valB = 0 (Don't Care)
 	MEM/WB pipeline register:
 		instruction = 0x01C00000 ( noop )
 		writeData = 0 (Don't Care)
@@ -142,15 +142,15 @@ state before cycle 3 starts:
 	ID/EX pipeline register:
 		instruction = 0x01800000 ( halt )
 		pcPlus1 = 2
-		readRegA = 0 (Don't Care)
-		readRegB = 0 (Don't Care)
+		valA = 0 (Don't Care)
+		valB = 0 (Don't Care)
 		offset = 0 (Don't Care)
 	EX/MEM pipeline register:
 		instruction = 0x00810002 ( lw 0 1 2 )
 		branchTarget 3 (Don't Care)
 		eq ? True (Don't Care)
 		aluResult = 2
-		readRegB = 0 (Don't Care)
+		valB = 0 (Don't Care)
 	MEM/WB pipeline register:
 		instruction = 0x01C00000 ( noop )
 		writeData = 0 (Don't Care)
@@ -181,15 +181,15 @@ state before cycle 4 starts:
 	ID/EX pipeline register:
 		instruction = 0x00003039 ( add 0 0 12345 )
 		pcPlus1 = 3
-		readRegA = 0
-		readRegB = 0
+		valA = 0
+		valB = 0
 		offset = 12345 (Don't Care)
 	EX/MEM pipeline register:
 		instruction = 0x01800000 ( halt )
 		branchTarget 2 (Don't Care)
 		eq ? True (Don't Care)
 		aluResult = 0 (Don't Care)
-		readRegB = 0 (Don't Care)
+		valB = 0 (Don't Care)
 	MEM/WB pipeline register:
 		instruction = 0x00810002 ( lw 0 1 2 )
 		writeData = 12345
@@ -223,15 +223,15 @@ state before cycle 5 starts:
 	ID/EX pipeline register:
 		instruction = 0x00000000 ( add 0 0 0 )
 		pcPlus1 = 4
-		readRegA = 0
-		readRegB = 0
+		valA = 0
+		valB = 0
 		offset = 0 (Don't Care)
 	EX/MEM pipeline register:
 		instruction = 0x00003039 ( add 0 0 12345 )
 		branchTarget 12348 (Don't Care)
 		eq ? True (Don't Care)
 		aluResult = 0
-		readRegB = 0 (Don't Care)
+		valB = 0 (Don't Care)
 	MEM/WB pipeline register:
 		instruction = 0x01800000 ( halt )
 		writeData = 0 (Don't Care)
