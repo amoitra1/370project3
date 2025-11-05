@@ -138,6 +138,8 @@ int main(int argc, char *argv[]) {
     newState = state;
 
     while (opcode(state.MEMWB.instr) != HALT) {
+    //while (opcode(state.WBEND.instr) != HALT) {
+
         printState(&state);
 
         newState.cycles += 1;
@@ -163,7 +165,7 @@ int main(int argc, char *argv[]) {
         newState.IDEX.offset = convertNum(field2(instruction));
 
         /* ---------------------- EX stage --------------------- */
-        instruction = state.IFID.instr;
+        instruction = state.IDEX.instr;
         opcod = opcode(instruction);
 
         newState.EXMEM.instr = instruction;
@@ -201,6 +203,15 @@ int main(int argc, char *argv[]) {
         instruction = state.MEMWB.instr;
         opcod = opcode(instruction);
 
+        newState.WBEND.instr = instruction;
+        newState.WBEND.writeData = state.MEMWB.writeData;
+        if (opcod == ADD || opcod == NOR) {
+            int dest = field2(instruction);
+            newState.reg[dest] = state.MEMWB.writeData;
+        } else if (opcod == LW) {
+            int dest = field1(instruction);
+            newState.reg[dest] = state.MEMWB.writeData;
+        }
         /* ------------------------ END ------------------------ */
         state = newState; /* this is the last statement before end of the loop. It marks the end
         of the cycle and updates the current state with the values calculated in this cycle */
