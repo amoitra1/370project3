@@ -143,19 +143,63 @@ int main(int argc, char *argv[]) {
         newState.cycles += 1;
 
         /* ---------------------- IF stage --------------------- */
-
+        if (state.pc < state.numMemory) {
+            newState.IFID.instr = state.instrMem[state.pc];
+            newState.IFID.pcPlus1 = state.pc + 1;
+        } 
+        else {
+            newState.IFID.instr = NOOPINSTR;
+        }
+        newState.pc = state.pc + 1;
 
         /* ---------------------- ID stage --------------------- */
+        int instruction = state.IFID.instr;
+        int opcod = opcode(instruction);
 
+        newState.IDEX.instr = instruction;
+        newState.IDEX.pcPlus1 = state.IFID.pcPlus1;
+        newState.IDEX.valA = state.reg[field0(instruction)];
+        newState.IDEX.valB = state.reg[field1(instruction)];
+        newState.IDEX.offset = convertNum(field2(instruction));
 
         /* ---------------------- EX stage --------------------- */
+        instruction = state.IFID.instr;
+        opcod = opcode(instruction);
 
+        newState.EXMEM.instr = instruction;
+        int resultalu = 0;
+        if (opcod == ADD) {
+            resultalu = state.IDEX.valA + state.IDEX.valB;
+        } else if (opcod == NOR) {
+            resultalu = ~(state.IDEX.valA | state.IDEX.valB);
+        } else if (opcod == LW || opcod == SW) {
+            resultalu = state.IDEX.valA + state.IDEX.offset;
+        } else if (opcod == BEQ) {
+            resultalu = state.IDEX.valA - state.IDEX.valB;
+        }
+        newState.EXMEM.aluResult = resultalu;
+        newState.EXMEM.valB = state.IDEX.valB;
+        newState.EXMEM.branchTarget = state.IDEX.pcPlus1 + state.IDEX.offset;
+        newState.EXMEM.eq = (state.IDEX.valA == state.IDEX.valB); // in 1 lune
 
         /* --------------------- MEM stage --------------------- */
+        instruction = state.EXMEM.instr;
+        opcod = opcode(instruction);
 
+        newState.MEMWB.instr = instruction;
+        int datawrite = 0;
+        if (opcod == LW) {
+            datawrite = state.dataMem[state.EXMEM.aluResult];
+        } else if (opcod == SW) {
+            newState.dataMem[state.EXMEM.aluResult] = state.EXMEM.valB;
+        } else if (opcod == ADD || opcod == NOR) {
+            datawrite = state.EXMEM.aluResult;
+        }
+        newState.MEMWB.writeData = datawrite;
 
         /* ---------------------- WB stage --------------------- */
-
+        instruction = state.MEMWB.instr;
+        opcod = opcode(instruction);
 
         /* ------------------------ END ------------------------ */
         state = newState; /* this is the last statement before end of the loop. It marks the end

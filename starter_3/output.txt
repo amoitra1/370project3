@@ -1,0 +1,2 @@
+instruction memory:
+error in reading address 0
