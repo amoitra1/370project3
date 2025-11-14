@@ -138,15 +138,14 @@ int main(int argc, char *argv[]) {
     newState = state;
 
     while (opcode(state.MEMWB.instr) != HALT) {
-    //while (opcode(state.WBEND.instr) != HALT) {
 
         printState(&state);
-
         newState.cycles += 1;
 
         /* ---------------------- IF stage --------------------- */
         int stall = 0;
-        //int stall = -1;
+
+        // load-use stall check (unchanged)
         int idnstr = state.IFID.instr;
         int exnstr = state.IDEX.instr;
         if (opcode(exnstr) == LW) {
@@ -155,8 +154,10 @@ int main(int argc, char *argv[]) {
                 stall = 1;
             }
         }
+
         if (!stall) {
-            int fetchedInstr = state.instrMem[state.pc];
+            // always fetch from instrMem; do NOT substitute NOOP after HALT
+            int fetchedInstr = state.instrMem[state.pc]; // past-end words are 0 -> add 0 0 0
             newState.IFID.instr = fetchedInstr;
             newState.IFID.pcPlus1 = state.pc + 1;
             newState.pc = state.pc + 1;
@@ -165,7 +166,6 @@ int main(int argc, char *argv[]) {
             newState.pc = state.pc;
             newState.IDEX.instr = NOOPINSTR;
         }
-        //newState.pc = state.pc + 1;
 
         /* ---------------------- ID stage --------------------- */
         int instruction = state.IFID.instr;
@@ -178,20 +178,17 @@ int main(int argc, char *argv[]) {
             newState.IDEX.valB = state.reg[field1(instruction)];
             newState.IDEX.offset = convertNum(field2(instruction));
         }
-        //newState.IDEX.instr = instruction;
-        //newState.IDEX.pcPlus1 = state.IFID.pcPlus1;
-        //newState.IDEX.valA = state.reg[field0(instruction)];
-        //newState.IDEX.valB = state.reg[field1(instruction)];
-        //newState.IDEX.offset = convertNum(field2(instruction));
 
         /* ---------------------- EX stage --------------------- */
         instruction = state.IDEX.instr;
         opcod = opcode(instruction);
 
         newState.EXMEM.instr = instruction;
+
         int valA = state.IDEX.valA;
         int valB = state.IDEX.valB;
 
+        // forwarding from EX/MEM (unchanged)
         int prevop = opcode(state.EXMEM.instr);
         int exmemDest;
         if (prevop == LW) {
@@ -207,6 +204,8 @@ int main(int argc, char *argv[]) {
                 valB = state.EXMEM.aluResult;
             }
         }
+
+        // forwarding from MEM/WB (unchanged)
         prevop = opcode(state.MEMWB.instr);
         int memwbdest;
         if (prevop == LW) {
@@ -240,6 +239,7 @@ int main(int argc, char *argv[]) {
         } else if (opcod == BEQ) {
             resultalu = valA - valB;
         }
+
         newState.EXMEM.aluResult = resultalu;
         newState.EXMEM.valB = valB;
         newState.EXMEM.branchTarget = state.IDEX.pcPlus1 + state.IDEX.offset;
@@ -259,6 +259,7 @@ int main(int argc, char *argv[]) {
             datawrite = state.EXMEM.aluResult;
         }
         newState.MEMWB.writeData = datawrite;
+
         if (opcod == BEQ && state.EXMEM.eq) {
             newState.pc = state.EXMEM.branchTarget;
             newState.IFID.instr = NOOPINSTR;
@@ -271,6 +272,7 @@ int main(int argc, char *argv[]) {
 
         newState.WBEND.instr = instruction;
         newState.WBEND.writeData = state.MEMWB.writeData;
+
         if (opcod == ADD || opcod == NOR) {
             int dest = field2(instruction);
             newState.reg[dest] = state.MEMWB.writeData;
@@ -278,10 +280,12 @@ int main(int argc, char *argv[]) {
             int dest = field1(instruction);
             newState.reg[dest] = state.MEMWB.writeData;
         }
+
         /* ------------------------ END ------------------------ */
-        state = newState; /* this is the last statement before end of the loop. It marks the end
-        of the cycle and updates the current state with the values calculated in this cycle */
+        state = newState;
     }
+
+
     printf("Machine halted\n");
     printf("Total of %d cycles executed\n", state.cycles);
     printf("Final state of machine:\n");
