@@ -151,8 +151,12 @@ int main(int argc, char *argv[]) {
         int exnstr = state.IDEX.instr;
         if (opcode(exnstr) == LW) {
             int lwDest = field1(exnstr);
-            if (lwDest == field0(idnstr) || lwDest == field1(idnstr)) {
-                stall = 1;
+            int nextopc = opcode(idnstr);
+            if (nextopc == ADD || nextopc == NOR || nextopc == LW ||
+                nextopc == SW  || nextopc == BEQ) {
+                if (lwDest == field0(idnstr) || lwDest == field1(idnstr)) {
+                    stall = 1;
+                }
             }
         }
         if (stall) {
@@ -197,14 +201,22 @@ int main(int argc, char *argv[]) {
         int valA = state.IDEX.valA;
         int valB = state.IDEX.valB;
 
-        int exop = opcode(state.EXMEM.instr);
-        if (exop == ADD || exop == NOR) {
-            int d = field2(state.EXMEM.instr);
+        int wbop = opcode(state.WBEND.instr);
+        if (wbop == ADD || wbop == NOR) {
+            int d = field2(state.WBEND.instr);
             if (field0(instruction) == d) {
-                valA = state.EXMEM.aluResult;
+                valA = state.WBEND.writeData;
             }
             if (field1(instruction) == d) {
-                valB = state.EXMEM.aluResult;
+                valB = state.WBEND.writeData;
+            }
+        } else if (wbop == LW) {
+            int d = field1(state.WBEND.instr);
+            if (field0(instruction) == d) {
+                valA = state.WBEND.writeData;
+            }
+            if (field1(instruction) == d) {
+                valB = state.WBEND.writeData;
             }
         }
 
@@ -227,22 +239,14 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        int wbop = opcode(state.WBEND.instr);
-        if (wbop == ADD || wbop == NOR) {
-            int d = field2(state.WBEND.instr);
+        int exop = opcode(state.EXMEM.instr);
+        if (exop == ADD || exop == NOR) {
+            int d = field2(state.EXMEM.instr);
             if (field0(instruction) == d) {
-                valA = state.WBEND.writeData;
+                valA = state.EXMEM.aluResult;
             }
             if (field1(instruction) == d) {
-                valB = state.WBEND.writeData;
-            }
-        } else if (wbop == LW) {
-            int d = field1(state.WBEND.instr);
-            if (field0(instruction) == d) {
-                valA = state.WBEND.writeData;
-            }
-            if (field1(instruction) == d) {
-                valB = state.WBEND.writeData;
+                valB = state.EXMEM.aluResult;
             }
         }
 
@@ -290,15 +294,11 @@ int main(int argc, char *argv[]) {
         newState.WBEND.writeData = state.MEMWB.writeData;
         if (opcod == ADD || opcod == NOR) {
             int dest = field2(instruction);
-            if (dest != 0) { //check if u needs this
-                newState.reg[dest] = state.MEMWB.writeData;
-            }
+            newState.reg[dest] = state.MEMWB.writeData;
         } else if (opcod == LW) {
             int dest = field1(instruction);
-            if (dest != 0) {
-                newState.reg[dest] = state.MEMWB.writeData;
-            }
-        }
+            newState.reg[dest] = state.MEMWB.writeData;
+        }    
         /* ------------------------ END ------------------------ */
         state = newState; /* this is the last statement before end of the loop. It marks the end
         of the cycle and updates the current state with the values calculated in this cycle */
