@@ -1,11 +1,12 @@
-lw 0 1 val
-add 1 1 2
-sw 0 2 out
-lw 0 3 out
-add 3 2 4
-nor 4 2 5
-beq 5 0 done
-add 0 0 6
+    lw 0 1 val1
+    add 1 1 2
+    nor 2 1 3
+    add 3 2 4
+    sw 0 4 str1
+    lw 0 5 str1
+    add 5 4 6
+    beq 6 0 done
+    add 6 6 7
 done halt
-val .fill 9
-out .fill 0
+val1 .fill 5
+str1 .fill 0

@@ -155,15 +155,20 @@ int main(int argc, char *argv[]) {
                 stall = 1;
             }
         }
-        if (!stall) {
-            int fetchedInstr = state.instrMem[state.pc];
-            newState.IFID.instr = fetchedInstr;
-            newState.IFID.pcPlus1 = state.pc + 1;
-            newState.pc = state.pc + 1;
-        } else {
+        if (stall) {
             newState.IFID = state.IFID;
             newState.pc = state.pc;
             newState.IDEX.instr = NOOPINSTR;
+            newState.IDEX.pcPlus1 = 0;
+            newState.IDEX.valA = 0;
+            newState.IDEX.valB = 0;
+            newState.IDEX.offset = 0;
+        } else {
+            int fetchedInstr = (state.pc < state.numMemory) ? state.instrMem[state.pc] : 0; // rewrite with if statements to avoid confsion
+            //int fetchedInstr = (state.pc < state.numMemory) ? state.instrMem[state.pc] : NOOPINSTR;
+            newState.IFID.instr = fetchedInstr;
+            newState.IFID.pcPlus1 = state.pc + 1;
+            newState.pc = state.pc + 1;
         }
         //newState.pc = state.pc + 1;
 
@@ -188,45 +193,56 @@ int main(int argc, char *argv[]) {
         instruction = state.IDEX.instr;
         opcod = opcode(instruction);
 
-        newState.EXMEM.instr = instruction;
+        //newState.EXMEM.instr = instruction;
         int valA = state.IDEX.valA;
         int valB = state.IDEX.valB;
 
-        int prevop = opcode(state.EXMEM.instr);
-        int exmemDest;
-        if (prevop == LW) {
-            exmemDest = field1(state.EXMEM.instr);
-        } else {
-            exmemDest = field2(state.EXMEM.instr);
-        }
-        if (prevop == ADD || prevop == NOR) {
-            if (field0(instruction) == exmemDest) {
+        int exop = opcode(state.EXMEM.instr);
+        if (exop == ADD || exop == NOR) {
+            int d = field2(state.EXMEM.instr);
+            if (field0(instruction) == d) {
                 valA = state.EXMEM.aluResult;
             }
-            if (field1(instruction) == exmemDest) {
+            if (field1(instruction) == d) {
                 valB = state.EXMEM.aluResult;
             }
         }
-        prevop = opcode(state.MEMWB.instr);
-        int memwbdest;
-        if (prevop == LW) {
-            memwbdest = field1(state.MEMWB.instr);
-        } else {
-            memwbdest = field2(state.MEMWB.instr);
+
+        int mwop = opcode(state.MEMWB.instr);
+        if (mwop == ADD || mwop == NOR) {
+            int d = field2(state.MEMWB.instr);
+            if (field0(instruction) == d) {
+                valA = state.MEMWB.writeData;
+            }
+            if (field1(instruction) == d) {
+                valB = state.MEMWB.writeData;
+            }
+        } else if (mwop == LW) {
+            int d = field1(state.MEMWB.instr);
+            if (field0(instruction) == d) {
+                valA = state.MEMWB.writeData;
+            }
+            if (field1(instruction) == d) {
+                valB = state.MEMWB.writeData;
+            }
         }
-        if (prevop == ADD || prevop == NOR) {
-            if (field0(instruction) == memwbdest) {
-                valA = state.MEMWB.writeData;
+
+        int wbop = opcode(state.WBEND.instr);
+        if (wbop == ADD || wbop == NOR) {
+            int d = field2(state.WBEND.instr);
+            if (field0(instruction) == d) {
+                valA = state.WBEND.writeData;
             }
-            if (field1(instruction) == memwbdest) {
-                valB = state.MEMWB.writeData;
+            if (field1(instruction) == d) {
+                valB = state.WBEND.writeData;
             }
-        } else if (prevop == LW) {
-            if (field0(instruction) == memwbdest) {
-                valA = state.MEMWB.writeData;
+        } else if (wbop == LW) {
+            int d = field1(state.WBEND.instr);
+            if (field0(instruction) == d) {
+                valA = state.WBEND.writeData;
             }
-            if (field1(instruction) == memwbdest) {
-                valB = state.MEMWB.writeData;
+            if (field1(instruction) == d) {
+                valB = state.WBEND.writeData;
             }
         }
 
@@ -240,6 +256,7 @@ int main(int argc, char *argv[]) {
         } else if (opcod == BEQ) {
             resultalu = valA - valB;
         }
+        newState.EXMEM.instr = instruction;
         newState.EXMEM.aluResult = resultalu;
         newState.EXMEM.valB = valB;
         newState.EXMEM.branchTarget = state.IDEX.pcPlus1 + state.IDEX.offset;
@@ -273,10 +290,14 @@ int main(int argc, char *argv[]) {
         newState.WBEND.writeData = state.MEMWB.writeData;
         if (opcod == ADD || opcod == NOR) {
             int dest = field2(instruction);
-            newState.reg[dest] = state.MEMWB.writeData;
+            if (dest != 0) { //check if u needs this
+                newState.reg[dest] = state.MEMWB.writeData;
+            }
         } else if (opcod == LW) {
             int dest = field1(instruction);
-            newState.reg[dest] = state.MEMWB.writeData;
+            if (dest != 0) {
+                newState.reg[dest] = state.MEMWB.writeData;
+            }
         }
         /* ------------------------ END ------------------------ */
         state = newState; /* this is the last statement before end of the loop. It marks the end

@@ -1,13 +1,15 @@
-add 0 0 1
-add 0 0 2
-nor 1 2 3
-add 3 3 4
-add 4 3 5
-lw 0 6 v
-add 6 5 7
-sw 0 7 sink
-lw 0 2 sink
-add 2 7 1
-halt
-v .fill 7
-sink .fill 0
+    lw 0 1 m1
+    sw 0 1 m2
+    lw 0 2 m2
+    add 2 1 3
+    lw 0 4 m3
+    add 3 4 5
+    nor 5 3 6
+    beq 6 0 skip
+    sw 0 5 m4
+skip lw 0 7 m4
+    halt
+m1 .fill 3
+m2 .fill 0
+m3 .fill 7
+m4 .fill 0
